@@ -2,7 +2,7 @@ name: active_reply_dynamic_control
 display_name: 主动回复动态控制
 desc: 按时间段与模式动态控制机器人对群聊的回复行为（完全封锁 / 仅被@回复），未配置时间段默认全天封锁。提供 WebUI 管理面板（总览 / 行为设置 / 系统）。
 author: buldJoson
-version: v1.0.0
+version: v1.0.1
 repo: "https://github.com/buldJoson/astrbot_plugin_active_reply_dynamic_control"
 dependencies: []
 support_platforms:
