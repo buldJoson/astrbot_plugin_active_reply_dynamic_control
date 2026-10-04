@@ -22,7 +22,7 @@ from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.event.filter import EventMessageType
 from astrbot.api.web import json_response, error_response, request
 from astrbot.api.message_components import Plain, At
-from astrbot import logger
+from astrbot.api import logger
 from astrbot.core.utils.astrbot_path import get_astrbot_plugin_data_path
 
 PLUGIN_NAME = "astrbot_plugin_active_reply_dynamic_control"
