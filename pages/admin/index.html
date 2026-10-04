@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <title>主动回复动态控制</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ① Header 固定顶部：品牌 + 全局状态 -->
+    <header class="hg-header">
+      <div class="hg-header-inner">
+        <div class="brand">
+          <div class="brand-text">
+            <div class="brand-title">主动回复动态控制</div>
+            <div class="brand-sub">定时封锁与回复模式控制</div>
+          </div>
+        </div>
+        <span class="status-pill" id="globalStateWrap" title="插件全局开关状态">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="globalState">—</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- 三列区（源码中主内容先于侧边栏）：左导航 | 主内容 | 右辅助栏 -->
+    <div class="hg">
+
+      <!-- ③ Main Content：flex-1 自适应宽度 -->
+      <main class="hg-main">
+        <!-- ===== 总览 ===== -->
+        <section class="tab-panel active" id="tab-overview">
+          <header class="panel-head">
+            <h2>总览</h2>
+            <p class="muted">已添加群聊的封锁状态，末端滑块可随时启用 / 停用。</p>
+          </header>
+          <div class="toolbar">
+            <input id="ovSearch" class="search" type="search" placeholder="检索群名 / 群号" aria-label="检索总览群聊" />
+            <button class="btn" id="ovRefresh" type="button">刷新</button>
+          </div>
+          <div class="list" id="overviewList"></div>
+        </section>
+
+        <!-- ===== 行为设置 ===== -->
+        <section class="tab-panel" id="tab-behavior">
+          <header class="panel-head">
+            <h2>行为设置</h2>
+            <p class="muted">管理受控群聊的封锁模式与时间段。</p>
+          </header>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>已添加群聊</h3>
+              <button class="btn primary" id="addGroupBtn" type="button">＋ 添加群聊</button>
+            </div>
+            <div class="toolbar">
+              <input id="controlledSearch" class="search" type="search" placeholder="检索群名 / 群号" aria-label="检索已添加群聊" />
+            </div>
+            <div class="list" id="controlledList"></div>
+          </div>
+        </section>
+
+        <!-- ===== 系统 ===== -->
+        <section class="tab-panel" id="tab-system">
+          <header class="panel-head">
+            <h2>系统</h2>
+            <p class="muted">全局开关、豁免规则、封锁提示与数据管理。</p>
+          </header>
+          <div class="card settings-card">
+            <label class="row">
+              <span>插件总开关</span>
+              <input type="checkbox" id="setEnabled" />
+            </label>
+            <label class="row">
+              <span>管理员豁免 <small>管理员消息始终不被封锁</small></span>
+              <input type="checkbox" id="setBypassAdmins" />
+            </label>
+            <label class="row">
+              <span>系统指令豁免 <small>以 / 开头的指令仍可执行</small></span>
+              <input type="checkbox" id="setBypassCommands" />
+            </label>
+            <div class="row col">
+              <span>被封锁时的提示</span>
+              <select id="setNoticeMode" aria-label="被封锁时的提示方式">
+                <option value="none">静默（不提示）</option>
+                <option value="at_sender">@发送者提示</option>
+                <option value="group_notice">群内公开提示</option>
+              </select>
+            </div>
+            <label class="row col">
+              <span>提示文案</span>
+              <input type="text" id="setNoticeText" class="input" />
+            </label>
+            <label class="row col">
+              <span>日志级别</span>
+              <select id="setLogLevel" aria-label="日志级别">
+                <option value="DEBUG">DEBUG</option>
+                <option value="INFO">INFO</option>
+                <option value="WARNING">WARNING</option>
+                <option value="ERROR">ERROR</option>
+              </select>
+            </label>
+            <div class="row actions">
+              <button class="btn primary" id="setSave" type="button">保存设置</button>
+              <button class="btn danger" id="setReset" type="button">重置全部数据</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ② Left Sidebar：固定宽度导航 -->
+      <aside class="hg-left">
+        <nav class="nav" aria-label="页面导航">
+          <button class="nav-item active" data-tab="overview" type="button" aria-current="page">
+            <span class="nav-ico" aria-hidden="true">▦</span> 总览
+          </button>
+          <button class="nav-item" data-tab="behavior" type="button">
+            <span class="nav-ico" aria-hidden="true">⚙</span> 行为设置
+          </button>
+          <button class="nav-item" data-tab="system" type="button">
+            <span class="nav-ico" aria-hidden="true">🛡</span> 系统
+          </button>
+        </nav>
+        <div class="sidebar-foot">封锁时段内，管理员与 / 指令默认豁免。</div>
+      </aside>
+
+      <!-- ④ Right Sidebar：固定宽度辅助信息 -->
+      <aside class="hg-right">
+        <section class="aside-section">
+          <h3 class="aside-title">实时统计</h3>
+          <div class="stat-grid">
+            <div>
+              <div class="stat-num" id="statTotal">0</div>
+              <div class="stat-label">全部群聊</div>
+            </div>
+            <div>
+              <div class="stat-num" id="statControlled">0</div>
+              <div class="stat-label">受控群聊</div>
+            </div>
+            <div>
+              <div class="stat-num" id="statActive">0</div>
+              <div class="stat-label">封锁生效中</div>
+            </div>
+          </div>
+        </section>
+        <section class="aside-section">
+          <h3 class="aside-title">使用指引</h3>
+          <ol class="guide">
+            <li>到「行为设置」点击右上角「＋ 添加群聊」，添加即默认启用。</li>
+            <li>选择模式：完全封锁 / 被@回复。</li>
+            <li>配置时间段：每天、自定义星期或指定日期，支持跨午夜。</li>
+            <li>总览可随时启停；封锁时段内仅放行 @、管理员与 / 指令（被@回复模式）。</li>
+          </ol>
+        </section>
+        <section class="aside-section">
+          <h3 class="aside-title">关于</h3>
+          <p class="aside-text">主动回复动态控制 v1.0.0<br />支持平台：aiocqhttp（OneBot / NapCat / QQ）</p>
+        </section>
+      </aside>
+    </div>
+
+    <!-- ⑤ Footer 固定底部 -->
+    <footer class="hg-footer">
+      <span>主动回复动态控制 v1.0.0</span>
+      <span class="footer-hint">仅对群聊生效 · 私聊不受影响</span>
+    </footer>
+  </div>
+
+  <!-- 时间段编辑弹层 -->
+  <div class="modal-mask" id="scheduleModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="scheduleTitle">
+      <div class="modal-head">
+        <h3 id="scheduleTitle">时间段设置</h3>
+        <button class="btn ghost sm" id="scheduleClose" type="button" aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body" id="scheduleBody"></div>
+    </div>
+  </div>
+
+  <!-- 添加群聊弹层 -->
+  <div class="modal-mask" id="addGroupModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addGroupTitle">
+      <div class="modal-head">
+        <h3 id="addGroupTitle">添加群聊</h3>
+        <button class="btn ghost sm" id="addGroupClose" type="button" aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="toolbar">
+          <input id="addGroupSearch" class="search" type="search" placeholder="检索群名 / 群号" aria-label="检索待添加群聊" />
+        </div>
+        <div class="list" id="addGroupList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
